@@ -1,0 +1,16 @@
+[
+{
+  "modid": "peperact",
+  "name": "Peperact",
+  "description": "The Peperact transfers Items, Fluids and Energy by sending it through the MEMEverse.",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "https://github.com/RarePepesDev/Peperact",
+  "updateUrl": "",
+  "authorList": ["RarePepesDev"],
+  "credits": "Rare Pepe Collectors Community",
+  "logoFile": "assets/peperact/textures/logo.png",
+  "screenshots": [],
+  "dependencies": []
+}
+]
