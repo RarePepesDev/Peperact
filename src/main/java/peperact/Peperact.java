@@ -7,12 +7,14 @@ import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import org.apache.logging.log4j.Logger;
 import peperact.common.CommonProxy;
+import peperact.common.registry.CreativeTabPeperact;
 
 @Mod(modid = Peperact.MODID, name = Peperact.NAME, version = Peperact.VERSION)
 public class Peperact {
     public static final String MODID = "peperact";
     public static final String NAME = "Peperact";
     public static final String VERSION = "@VERSION@";
+    public static final CreativeTabPeperact CREATIVE_TAB = new CreativeTabPeperact();
     public static Logger log;
     @SidedProxy(clientSide = "peperact.client.ClientProxy", serverSide = "peperact.common.CommonProxy")
     public static CommonProxy proxy;

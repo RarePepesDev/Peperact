@@ -1,5 +1,7 @@
 ## next
 - Fixed block break particles
+- Added hardness to the Peperact
+- Added Creative Tab with Peperact
 
 ## v0.0.1 (2018-08-02)
 - Initial Release
