@@ -5,13 +5,10 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityInject;
-import net.minecraftforge.common.capabilities.ICapabilityProvider;
-import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.energy.IEnergyStorage;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidTankProperties;
-import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 
 import javax.annotation.Nonnull;
@@ -31,18 +28,18 @@ public class TilePeperact extends TileEntity implements IItemHandler, IFluidHand
 
     @Override
     public boolean hasCapability(Capability<?> capability, @Nullable EnumFacing facing) {
-        if(capability == ITEM_HANDLER_CAPABILITY) return true;
-        if(capability == FLUID_HANDLER_CAPABILITY) return true;
-        if(capability == ENERGY_STORAGE_CAPABILITY) return true;
+        if (capability == ITEM_HANDLER_CAPABILITY) return true;
+        if (capability == FLUID_HANDLER_CAPABILITY) return true;
+        if (capability == ENERGY_STORAGE_CAPABILITY) return true;
         return super.hasCapability(capability, facing);
     }
 
     @Nullable
     @Override
     public <T> T getCapability(Capability<T> capability, @Nullable EnumFacing facing) {
-        if(capability == ITEM_HANDLER_CAPABILITY) return (T) this;
-        if(capability == FLUID_HANDLER_CAPABILITY) return (T) this;
-        if(capability == ENERGY_STORAGE_CAPABILITY) return (T) this;
+        if (capability == ITEM_HANDLER_CAPABILITY) return (T) this;
+        if (capability == FLUID_HANDLER_CAPABILITY) return (T) this;
+        if (capability == ENERGY_STORAGE_CAPABILITY) return (T) this;
         return super.getCapability(capability, facing);
     }
 
