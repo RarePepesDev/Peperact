@@ -11,7 +11,7 @@ apply plugin: 'net.minecraftforge.gradle.forge'
 
 version = version_major + '.' + version_minor + '.' + version_patch
 group = "peperact"
-archivesBaseName = "peperact"
+archivesBaseName = "peperact-" + mc_version
 
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
