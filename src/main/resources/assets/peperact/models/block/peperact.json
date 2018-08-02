@@ -1,7 +1,8 @@
 {
 	"credit": "Made with Blockbench",
 	"textures": {
-		"main": "peperact:block/peperact"
+		"main": "peperact:block/peperact",
+		"particle": "peperact:block/peperact"
 	},
 	"elements": [
 		{

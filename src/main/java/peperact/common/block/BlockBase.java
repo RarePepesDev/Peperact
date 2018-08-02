@@ -36,7 +36,7 @@ public class BlockBase extends Block {
      * @return Auto generated ResourceLocation
      */
     public ResourceLocation getResourceLocation() {
-        if (resourceLocation == null) {
+        if(resourceLocation == null) {
             String name = StringHelper.camelCaseToSnakeCase(StringHelper.removePrefix(this.getClass().getSimpleName(), "Block"));
             return new ResourceLocation(Peperact.MODID, name);
         }
@@ -51,7 +51,7 @@ public class BlockBase extends Block {
      * @return ItemBlock for this block.
      */
     public ItemBlock getItemBlock() {
-        if (itemBlock == null) {
+        if(itemBlock == null) {
             ItemBlock itemBlock = new ItemBlock(this);
             return itemBlock;
         }
