@@ -7,8 +7,6 @@ import net.minecraft.item.ItemBlock;
 import net.minecraft.util.ResourceLocation;
 import peperact.Peperact;
 import peperact.common.helper.StringHelper;
-import peperact.common.registry.RegistryBlocks;
-import peperact.common.registry.RegistryItems;
 
 public class BlockBase extends Block {
     private final ResourceLocation resourceLocation;
@@ -16,15 +14,18 @@ public class BlockBase extends Block {
 
     /**
      * For registration purposes, constructor of sub classes must not have any params.
+     *
      * @param material
      * @param color
      */
     public BlockBase(Material material, MapColor color) {
         super(material, color);
-        this.resourceLocation = this.getResourceLocation();
+        resourceLocation = getResourceLocation();
         this.setTranslationKey(resourceLocation.getNamespace());
         this.setRegistryName(resourceLocation);
-        this.itemBlock = this.getItemBlock();
+        itemBlock = getItemBlock();
+        itemBlock.setTranslationKey(resourceLocation.getNamespace());
+        itemBlock.setRegistryName(resourceLocation);
     }
 
     /**
@@ -43,7 +44,8 @@ public class BlockBase extends Block {
     }
 
     /**
-     * Automatically generates an ItemBlock for this block
+     * Automatically generates an ItemBlock for this block.
+     * Override to provide a different ItemBlock.
      * This is called in the constructor.
      *
      * @return ItemBlock for this block.
@@ -51,8 +53,6 @@ public class BlockBase extends Block {
     public ItemBlock getItemBlock() {
         if (itemBlock == null) {
             ItemBlock itemBlock = new ItemBlock(this);
-            itemBlock.setTranslationKey(getResourceLocation().getNamespace());
-            itemBlock.setRegistryName(getResourceLocation());
             return itemBlock;
         }
         return itemBlock;

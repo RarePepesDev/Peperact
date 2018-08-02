@@ -38,7 +38,7 @@ public class EventHandler {
     }
 
     @SubscribeEvent
-    public static void registerModels(ModelRegistryEvent event) {
+    public static void onRegisterModel(ModelRegistryEvent event) {
         Peperact.proxy.registerItemModels();
     }
 }
