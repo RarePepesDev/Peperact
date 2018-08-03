@@ -36,7 +36,8 @@ public class TilePeperact extends TileEntity implements IItemHandler, IFluidHand
 
     private static Set<TilePeperact> allTiles = new HashSet<TilePeperact>();
 
-    private boolean inserting = false;
+    //TODO: Channels: This should be network wide
+    private static boolean exporting = false;
 
     @Override
     public void invalidate() {
@@ -74,13 +75,22 @@ public class TilePeperact extends TileEntity implements IItemHandler, IFluidHand
 
     @SuppressWarnings("unchecked")
     private <T> Stream<T> getTargetCapabilities(Capability<T> capability) {
-        return allTiles.stream()
-                .filter(p -> !p.inserting && !p.isInvalid())
+        //TODO: Channels: This should be only over the peperacts in the network
+        return allTiles.parallelStream()
+                //Try to export out of all other Peperacts on the network
+                .filter(p -> p != this)
                 .flatMap(p -> Arrays.stream(EnumFacing.VALUES)
                         .map(side -> Pair.of(side.getOpposite(), p.getPos().offset(side)))
                         .filter(sidepos -> p.getWorld().isBlockLoaded(sidepos.getRight()))
                         .map(sidepos -> Pair.of(sidepos.getLeft(), p.getWorld().getTileEntity(sidepos.getRight())))
                         .filter(sidetile -> sidetile.getRight() != null)
+                        //Ignore Peperacts that are on the same network, or a network currently exporting
+                        .filter(sidetile -> {
+                            TileEntity tile = sidetile.getRight();
+                            if(!(tile instanceof TilePeperact)) return true;
+                            //TODO: Channels: ignore Peperacts of the same network, or networks that are currently exporting
+                            return false;
+                        })
                         .map(sidetile -> sidetile.getRight().getCapability(capability, sidetile.getLeft()))
                         .filter(Predicates.notNull())
                 );
@@ -88,8 +98,8 @@ public class TilePeperact extends TileEntity implements IItemHandler, IFluidHand
 
     @Override
     public int receiveEnergy(int maxReceive, boolean simulate) {
-        if(this.getWorld().isRemote || inserting || maxReceive <= 0) return 0;
-        this.inserting = true;
+        if(this.getWorld().isRemote || exporting || maxReceive <= 0) return 0;
+        this.exporting = true;
 
         List<IEnergyStorage> caps = getTargetCapabilities(ENERGY_STORAGE_CAPABILITY)
                 .filter(IEnergyStorage::canReceive)
@@ -101,14 +111,14 @@ public class TilePeperact extends TileEntity implements IItemHandler, IFluidHand
             if(remaining <= 0) break;
         }
 
-        this.inserting = false;
+        this.exporting = false;
         return maxReceive - remaining;
     }
 
     @Override
     public int fill(FluidStack resource, boolean doFill) {
-        if(this.getWorld().isRemote || inserting || resource == null || resource.amount <= 0) return 0;
-        this.inserting = true;
+        if(this.getWorld().isRemote || exporting || resource == null || resource.amount <= 0) return 0;
+        this.exporting = true;
 
         List<IFluidHandler> caps = getTargetCapabilities(FLUID_HANDLER_CAPABILITY)
                 .filter(cap -> {
@@ -125,15 +135,15 @@ public class TilePeperact extends TileEntity implements IItemHandler, IFluidHand
             if(remaining.amount <= 0) break;
         }
 
-        this.inserting = false;
+        this.exporting = false;
         return resource.amount - remaining.amount;
     }
 
     @Nonnull
     @Override
     public ItemStack insertItem(int slotAlwaysZero, @Nonnull ItemStack stack, boolean simulate) {
-        if(this.getWorld().isRemote || inserting || stack.isEmpty() || stack.getCount() <= 0) return stack;
-        this.inserting = true;
+        if(this.getWorld().isRemote || exporting || stack.isEmpty() || stack.getCount() <= 0) return stack;
+        this.exporting = true;
 
         List<IItemHandler> caps = getTargetCapabilities(ITEM_HANDLER_CAPABILITY)
                 .filter(cap -> cap.getSlots() > 0) //TODO: Is there a better way to filter out more?
@@ -148,7 +158,7 @@ public class TilePeperact extends TileEntity implements IItemHandler, IFluidHand
             }
         }
 
-        this.inserting = false;
+        this.exporting = false;
         return remaining.isEmpty() ? ItemStack.EMPTY : remaining;
     }
 

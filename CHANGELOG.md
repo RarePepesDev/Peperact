@@ -1,7 +1,8 @@
 ## next
-- Fixed block break particles
 - Added hardness to the Peperact
-- Added Creative Tab with Peperact
+- Added Creative Tab
+- Fixed block break particles
+- Fixed nested Peperact insertion (Peperacts don't insert into Peperacts on the same network)
 
 ## v0.0.1 (2018-08-02)
 - Initial Release
