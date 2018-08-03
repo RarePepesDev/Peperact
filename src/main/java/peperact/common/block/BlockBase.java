@@ -21,10 +21,9 @@ public class BlockBase extends Block {
     public BlockBase(Material material, MapColor color) {
         super(material, color);
         resourceLocation = getResourceLocation();
-        this.setTranslationKey(resourceLocation.getNamespace());
+        this.setTranslationKey(StringHelper.toKey(resourceLocation));
         this.setRegistryName(resourceLocation);
         itemBlock = getItemBlock();
-        itemBlock.setTranslationKey(resourceLocation.getNamespace());
         itemBlock.setRegistryName(resourceLocation);
     }
 
