@@ -1,6 +1,7 @@
 ## next
 - Added hardness to the Peperact
 - Added Creative Tab
+- New Special Renderer for the Peperact (Dunno if it'll stick around)
 - Fixed block break particles
 - Fixed nested Peperact insertion (Peperacts don't insert into Peperacts on the same network)
 

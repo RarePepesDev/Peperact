@@ -1,5 +1,8 @@
 # Creative Tab
 itemGroup.peperact=Peperact
 
-# Tile Entities
+# Tiles
 tile.peperact.peperact.name=Peperact
+
+# Items
+item.peperact.pepe.name=Pepe

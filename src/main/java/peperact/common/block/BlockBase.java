@@ -25,6 +25,7 @@ public class BlockBase extends Block {
         this.setRegistryName(resourceLocation);
         itemBlock = getItemBlock();
         itemBlock.setRegistryName(resourceLocation);
+        this.setCreativeTab(Peperact.CREATIVE_TAB);
     }
 
     /**
