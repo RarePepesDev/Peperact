@@ -3,6 +3,7 @@ package peperact.client.render.tile;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.OpenGlHelper;
+import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.item.ItemStack;
@@ -21,7 +22,7 @@ public class RenderPeperact extends TileEntitySpecialRenderer<TilePeperact> {
     @Override
     public void render(TilePeperact te, double x, double y, double z, float partialTicks, int destroyStage, float alpha)
     {
-        GlStateManager.pushAttrib();
+        //GlStateManager.pushAttrib();
         GlStateManager.pushMatrix();
 
         // Move to the middle of the block
@@ -30,38 +31,38 @@ public class RenderPeperact extends TileEntitySpecialRenderer<TilePeperact> {
 
         // From LayerEndermanEyes
         // I have no idea what I'm doing LUL
-        GlStateManager.enableBlend();
-        GlStateManager.disableAlpha();
+        //GlStateManager.enableBlend();
+        //GlStateManager.disableAlpha();
         //GlStateManager.blendFunc(GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE);
-        GlStateManager.disableLighting();
-        GlStateManager.depthMask(true);
+        //GlStateManager.disableLighting();
+        //GlStateManager.depthMask(true);
         OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 61680.0F, 0.0F);
-        GlStateManager.enableLighting();
-        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-        Minecraft.getMinecraft().entityRenderer.setupFogColor(true);
+        //GlStateManager.enableLighting();
+        //GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+        //Minecraft.getMinecraft().entityRenderer.setupFogColor(true);
         // End LayerEndermanEyes
 
-        GlStateManager.pushMatrix();
+        //GlStateManager.pushMatrix();
         model.renderInside();
-        GlStateManager.popMatrix();
+        //GlStateManager.popMatrix();
 
-        GlStateManager.disableLighting();
-        GlStateManager.pushMatrix();
+        RenderHelper.disableStandardItemLighting();
+        //GlStateManager.pushMatrix();
         GlStateManager.rotate(360f * ((this.getWorld().getTotalWorldTime() + partialTicks) / (PEPE_ROTATION_PERIOD)), 0.0f, 1.0f, 0.0f);
-
         GlStateManager.translate(0, -0.05, 0);
         GlStateManager.scale(0.5, 0.5, 0.5);
         Minecraft.getMinecraft().getRenderItem().renderItem(PEPE_STACK, ItemCameraTransforms.TransformType.GROUND);
-        GlStateManager.popMatrix();
+        //GlStateManager.popMatrix();
 
         // From LayerEndermanEyes
-        Minecraft.getMinecraft().entityRenderer.setupFogColor(false);
-        GlStateManager.depthMask(true);
-        GlStateManager.disableBlend();
-        GlStateManager.enableAlpha();
+        //GlStateManager.disableLighting();
+        //Minecraft.getMinecraft().entityRenderer.setupFogColor(false);
+        //GlStateManager.depthMask(true);
+        //GlStateManager.disableBlend();
+        //GlStateManager.enableAlpha();
         // End LayerEndermanEyes
 
         GlStateManager.popMatrix();
-        GlStateManager.popAttrib();
+        //GlStateManager.popAttrib();
     }
 }
