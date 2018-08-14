@@ -25,7 +25,7 @@ public class BlockPeperact extends BlockBase implements ITileEntityProvider {
         this.setHardness(5.0F);
         this.setSoundType(SoundType.METAL);
         // Don't know if I should be registering it here... XD
-        GameRegistry.registerTileEntity(TilePeperact.class, this.getResourceLocation());
+        GameRegistry.registerTileEntity(TilePeperact.class, this.getRegistryName());
     }
 
     @Nullable

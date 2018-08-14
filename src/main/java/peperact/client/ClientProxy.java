@@ -26,14 +26,14 @@ public class ClientProxy extends CommonProxy {
             if(BlockBase.class.isAssignableFrom(f.getType())) {
                 BlockBase blockBase = (BlockBase) f.get(null);
                 ItemBlock itemBlock = blockBase.getItemBlock();
-                ModelLoader.setCustomModelResourceLocation(itemBlock, 0, new ModelResourceLocation(blockBase.getResourceLocation(), "inventory"));
+                ModelLoader.setCustomModelResourceLocation(itemBlock, 0, new ModelResourceLocation(blockBase.getRegistryName(), "inventory"));
             }
         }
         // Items
         for(Field f : RegistryItems.class.getDeclaredFields()) {
             if(ItemBase.class.isAssignableFrom(f.getType())) {
                 ItemBase itemBase = (ItemBase) f.get(null);
-                ModelLoader.setCustomModelResourceLocation(itemBase, 0, new ModelResourceLocation(itemBase.getResourceLocation(), "inventory"));
+                ModelLoader.setCustomModelResourceLocation(itemBase, 0, new ModelResourceLocation(itemBase.getRegistryName(), "inventory"));
             }
         }
     }

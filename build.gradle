@@ -19,17 +19,55 @@ targetCompatibility = JavaVersion.VERSION_1_8
 minecraft {
 	version = "${mc_version}-${forge_version}"
 	runDir = "run"
-	replace '@VERSION@', project.version
+	replace 'VERSION = "999.999.999";', 'VERSION = "' + project.version + '";';
+    replace 'DEPENDENCIES = "";', 'DEPENDENCIES = "' +
+            "required-after:forge@[${forge_version_required},);" +
+            "after:jei@[${jei_version},);" +
+            "after:thermalfoundation@[${thermalfoundation_version},);" +
+            "after:thermaldynamics@[${thermaldynamics_version},);" +
+            "after:thermalexpansion@[${thermalexpansion_version},);" +
+            "after:enderio@[${enderio_version},);" +
+            '";'
 	mappings = mcp_mappings
 }
 
 repositories {
-    maven { url = "http://dvs1.progwml6.com/files/maven" } //JEI
+    maven {
+        name = "JEI"
+        url = "http://dvs1.progwml6.com/files/maven"
+    }
+    maven {
+        name = "ChickenBones"
+        url = "http://chickenbones.net/maven"
+    }
+    maven {
+        name = "CoFH"
+        url = "http://maven.covers1624.net"
+    }
+    maven {
+        name = "EnderOI"
+        url = "https://maven.tterrag.com"
+    }
+    maven {
+        name = "CurseForge"
+        url = "https://minecraft.curseforge.com/api/maven"
+    }
 }
 
 dependencies {
     deobfCompile "mezz.jei:jei_${mc_version}:${jei_version}:api"
     runtime "mezz.jei:jei_${mc_version}:${jei_version}"
+    deobfCompile "cofh:RedstoneFlux:1.12-2.0.2.3:universal"
+    deobfCompile "cofh:CoFHCore:${mc_version}-4.5.3.20:universal", { exclude group: 'mezz.jei' exclude group: 'cofh' }
+    deobfCompile "cofh:CoFHWorld:${mc_version}-1.2.0.5:universal"
+    deobfCompile "cofh:ThermalFoundation:${mc_version}-${thermalfoundation_version}:universal", { exclude group: 'mezz.jei' exclude group: 'cofh' }
+    deobfCompile "codechicken:CodeChickenLib:${mc_version}-3.2.1.350:universal"
+    deobfCompile "cofh:ThermalExpansion:${mc_version}-${thermalexpansion_version}:universal", { exclude group: 'mezz.jei' exclude group: 'cofh' exclude group: 'codechicken' }
+    deobfCompile "cofh:ThermalDynamics:${mc_version}-${thermaldynamics_version}:universal", { exclude group: 'mezz.jei' exclude group: 'cofh' exclude group: 'codechicken' }
+    // Ender IO Maven missing files? Using curse forge maven
+    //deobfCompile "com.enderio:EnderIO:${mc_version}-${enderio_version}"
+    deobfCompile "endercore:EnderCore:${mc_version}:0.5.37"
+    deobfCompile "ender-io:EnderIO:${mc_version}:${enderio_version}"
 }
 
 processResources {

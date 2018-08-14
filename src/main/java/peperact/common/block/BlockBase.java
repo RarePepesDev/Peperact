@@ -9,38 +9,26 @@ import peperact.Peperact;
 import peperact.common.helper.StringHelper;
 
 public class BlockBase extends Block {
-    private final ResourceLocation resourceLocation;
     private final ItemBlock itemBlock;
 
     /**
      * For registration purposes, constructor of sub classes must not have any params.
-     *
-     * @param material
-     * @param color
+     * Automatically generates resource location from class name by converting CamelCase to snake_case.
+     * Make sure your sub class starts with "Block".
+     * @param material of the block
+     * @param color to display on a map
      */
     public BlockBase(Material material, MapColor color) {
         super(material, color);
-        resourceLocation = getResourceLocation();
-        this.setTranslationKey(StringHelper.toKey(resourceLocation));
-        this.setRegistryName(resourceLocation);
+        ResourceLocation location = new ResourceLocation(
+                Peperact.MODID,
+                StringHelper.camelCaseToSnakeCase(StringHelper.removePrefix(this.getClass().getSimpleName(), "Block"))
+        );
+        this.setRegistryName(location);
+        this.setTranslationKey(StringHelper.toKey(location));
         itemBlock = getItemBlock();
-        itemBlock.setRegistryName(resourceLocation);
+        itemBlock.setRegistryName(location);
         this.setCreativeTab(Peperact.CREATIVE_TAB);
-    }
-
-    /**
-     * Automatically generates resource location from class name by converting CamelCase to snake_case.
-     * Make sure your sub class starts with "Block".
-     * This is called in the constructor.
-     *
-     * @return Auto generated ResourceLocation
-     */
-    public ResourceLocation getResourceLocation() {
-        if(resourceLocation == null) {
-            String name = StringHelper.camelCaseToSnakeCase(StringHelper.removePrefix(this.getClass().getSimpleName(), "Block"));
-            return new ResourceLocation(Peperact.MODID, name);
-        }
-        return resourceLocation;
     }
 
     /**
@@ -52,8 +40,7 @@ public class BlockBase extends Block {
      */
     public ItemBlock getItemBlock() {
         if(itemBlock == null) {
-            ItemBlock itemBlock = new ItemBlock(this);
-            return itemBlock;
+            return new ItemBlock(this);
         }
         return itemBlock;
     }
