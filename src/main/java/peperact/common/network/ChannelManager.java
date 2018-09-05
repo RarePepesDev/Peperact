@@ -16,6 +16,9 @@ import java.util.*;
 public class ChannelManager extends WorldSavedData implements Set<Channel> {
     public static final String CHANNEL_SAVE_ID = Peperact.MODID + "_channels";
     public static final String CHANNEL_LIST_TAG = "channels";
+    public static final String CHANNEL_VERSION_TAG = "version";
+    // This is so if the format changes significantly in the future it can be updated
+    public static final int VERSION = 0;
 
     public static ChannelManager get(World world) {
         MapStorage storage = world.getMapStorage();
@@ -48,10 +51,12 @@ public class ChannelManager extends WorldSavedData implements Set<Channel> {
 
     @Override
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
+        compound.setInteger(CHANNEL_VERSION_TAG, VERSION);
         NBTTagList list = new NBTTagList();
         for(Channel channel : channels) {
             list.appendTag(Channel.Serializer.serializeNBT(channel));
         }
+        compound.setTag(CHANNEL_LIST_TAG, list);
         return compound;
     }
 
