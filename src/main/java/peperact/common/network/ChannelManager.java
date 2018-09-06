@@ -10,15 +10,22 @@ import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.fml.common.Mod;
 import peperact.Peperact;
 
+import javax.annotation.Nonnull;
 import java.util.*;
 
 @Mod.EventBusSubscriber(modid = Peperact.MODID)
-public class ChannelManager extends WorldSavedData implements Set<Channel> {
+public class ChannelManager extends WorldSavedData {
     public static final String CHANNEL_SAVE_ID = Peperact.MODID + "_channels";
+    public static final String GROUP_LIST_TAG = "groups";
+    public static final String GROUP_ID_TAG = "id";
+    public static final String GROUP_NAME_TAG = "name";
     public static final String CHANNEL_LIST_TAG = "channels";
+    public static final String CHANNEL_FREQUENCY_TAG = "freq";
+    public static final String CHANNEL_NAME_TAG = "name";
     public static final String CHANNEL_VERSION_TAG = "version";
     // This is so if the format changes significantly in the future it can be updated
     public static final int VERSION = 0;
+    public static final int GROUP_PUBLIC = 0;
 
     public static ChannelManager get(World world) {
         MapStorage storage = world.getMapStorage();
@@ -30,190 +37,166 @@ public class ChannelManager extends WorldSavedData implements Set<Channel> {
     }
 
     private final Set<Channel> channels = new HashSet<>();
-    private final Set<Channel> public_channels = new HashSet<>();
-    private final Map<UUID, Set<Channel>> shared_channels = new HashMap<>();
-    private final Map<UUID, Set<Channel>> personal_channels = new HashMap<>();
+    private final Map<Channel, String> channel_names = new TreeMap<>();
+    private final Map<Integer, Set<Channel>> group_channels = new HashMap<>();
+    private final Map<Integer, String> group_names = new TreeMap<>();
 
     public ChannelManager() {
         super(CHANNEL_SAVE_ID);
+        //TODO: Translate this... somehow?
+        group_names.put(GROUP_PUBLIC, "Public");
     }
 
     @Override
     public void readFromNBT(NBTTagCompound compound) {
-        NBTTagList list = compound.getTagList(CHANNEL_LIST_TAG, Constants.NBT.TAG_COMPOUND);
         boolean wasDirty = this.isDirty();
-        for(NBTBase elem : list) {
-            NBTTagCompound channelNBT = (NBTTagCompound) elem;
-            add(Channel.Serializer.deserializeNBT(channelNBT));
+        // Version
+        int version = compound.getInteger(CHANNEL_VERSION_TAG);
+        // List of Groups
+        NBTTagList groupsTag = compound.getTagList(GROUP_LIST_TAG, Constants.NBT.TAG_COMPOUND);
+        for (NBTBase elem : groupsTag) {
+            NBTTagCompound groupTag = (NBTTagCompound) elem;
+
+            // Group ID and Name
+            int group = groupTag.getInteger(GROUP_ID_TAG);
+            String groupName = groupTag.getString(GROUP_NAME_TAG);
+            if (group != GROUP_PUBLIC)
+                addGroup(group, groupName);
+
+            // List of channels
+            NBTTagList channelsTag = groupTag.getTagList(CHANNEL_LIST_TAG, Constants.NBT.TAG_COMPOUND);
+            for(NBTBase elem2 : channelsTag) {
+                NBTTagCompound channelTag = (NBTTagCompound) elem2;
+                // Frequency and Name
+                int frequency = channelTag.getInteger(CHANNEL_FREQUENCY_TAG);
+                String channelName = groupTag.getString(CHANNEL_NAME_TAG);
+                addChannel(Channel.make(group, frequency), channelName);
+            }
         }
         this.setDirty(wasDirty);
     }
 
     @Override
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
+        // Version
         compound.setInteger(CHANNEL_VERSION_TAG, VERSION);
-        NBTTagList list = new NBTTagList();
-        for(Channel channel : channels) {
-            list.appendTag(Channel.Serializer.serializeNBT(channel));
+        // List of Groups
+        NBTTagList groupsTag = new NBTTagList();
+        for(Map.Entry<Integer, String> i : group_names.entrySet()) {
+            NBTTagCompound groupTag = new NBTTagCompound();
+
+            // Group ID and Name
+            groupTag.setInteger(GROUP_ID_TAG, i.getKey());
+            groupTag.setString(GROUP_NAME_TAG, i.getValue());
+
+            // List of Channels
+            NBTTagList channelsTag = new NBTTagList();
+            for(Channel channel : group_channels.get(i.getKey())) {
+                NBTTagCompound channelTag = new NBTTagCompound();
+                // Freqeuncy and Name
+                channelTag.setInteger(CHANNEL_FREQUENCY_TAG, channel.frequency);
+                channelTag.setString(CHANNEL_NAME_TAG, channel_names.get(channel));
+                // Add to list tag
+                channelsTag.appendTag(channelTag);
+            }
+            // Save list tag
+            groupTag.setTag(CHANNEL_LIST_TAG, channelsTag);
+
+            // Add to list tag
+            groupsTag.appendTag(groupTag);
         }
-        compound.setTag(CHANNEL_LIST_TAG, list);
+        // Save list tag
+        compound.setTag(GROUP_LIST_TAG, groupsTag);
         return compound;
     }
 
-    public void onAdd(Channel channel) {
-        this.markDirty();
-        switch(channel.scope) {
-            case PUBLIC: {
-                public_channels.add(channel);
-                break;
-            }
-            case SHARED: {
-                Set<Channel> yay = shared_channels.computeIfAbsent(channel.owner, k -> new HashSet<>());
-                yay.add(channel);
-                break;
-            }
-            case PERSONAL: {
-                Set<Channel> yay = personal_channels.computeIfAbsent(channel.owner, k -> new HashSet<>());
-                yay.add(channel);
-                break;
-            }
-            default:
-                Peperact.log.error("Unknown Scope: " + channel.scope.ordinal());
-        }
+    private void onAddChannel(@Nonnull Channel channel, @Nonnull String name) {
+        Peperact.log.info("Added Channel #%d '%s' to group #%d '%s'", channel.frequency, name, channel.group, group_names.get(channel.group));
     }
 
-    public void onRemove(Channel channel) {
-        this.markDirty();
-        switch(channel.scope) {
-            case PUBLIC: {
-                public_channels.remove(channel);
-                break;
-            }
-            case SHARED: {
-                Set<Channel> yay = shared_channels.computeIfAbsent(channel.owner, k -> new HashSet<>());
-                yay.remove(channel);
-                // TODO: Dunno if need to clean up
-                break;
-            }
-            case PERSONAL: {
-                Set<Channel> yay = personal_channels.computeIfAbsent(channel.owner, k -> new HashSet<>());
-                yay.remove(channel);
-                // TODO: Clean up if needed
-                break;
-            }
-            default:
-                Peperact.log.error("Unknown Scope: " + channel.scope.ordinal());
-        }
+    public void onRenameChannel(@Nonnull Channel channel, @Nonnull String prev, @Nonnull String next) {
+        Peperact.log.info("Renamed Channel #%d '%s' to '%s' in group #%d '%s'", channel.frequency, prev, next, channel.group, group_names.get(channel.group));
     }
 
-    // Set methods wrapping
-
-    @Override
-    public int size() {
-        return channels.size();
+    private void onRemoveChannel(@Nonnull Channel channel, @Nonnull String name) {
+        Peperact.log.info("Removed Channel #%d '%s' from group #%d '%s'", channel.frequency, name, channel.group, group_names.get(channel.group));
     }
 
-    @Override
-    public boolean isEmpty() {
-        return channels.isEmpty();
+    private void onAddGroup(int group, @Nonnull String name) {
+        Peperact.log.info("Added Group #%d '%s'", group, name);
     }
 
-    @Override
-    public boolean contains(Object o) {
-        return channels.contains(o);
+    public void onRenameGroup(@Nonnull int group, @Nonnull String prev, @Nonnull String next) {
+        Peperact.log.info("Renamed Group #%d '%s' to '%s'", group, prev, next);
     }
 
-    @Override
-    public Iterator<Channel> iterator() {
-        Iterator<Channel> internal = channels.iterator();
-        return new Iterator<Channel>() {
-            Channel last = null;
-
-            @Override
-            public boolean hasNext() {
-                return internal.hasNext();
-            }
-
-            @Override
-            public Channel next() {
-                return last = internal.next();
-            }
-
-            @Override
-            public void remove() {
-                internal.remove();
-                onRemove(last);
-            }
-        };
+    private void onRemoveGroup(int group, @Nonnull String name) {
+        Peperact.log.info("Removed Group #%d '%s'", group, name);
     }
 
-    @Override
-    public Object[] toArray() {
-        return channels.toArray();
-    }
-
-    @Override
-    public <T> T[] toArray(T[] a) {
-        return channels.toArray(a);
-    }
-
-    @Override
-    public boolean add(Channel channel) {
+    public boolean addChannel(@Nonnull Channel channel, @Nonnull String name) {
+        if(!channel.isValid()) return false;
+        if (!group_names.containsKey(channel.group)) return false;
         boolean changed = channels.add(channel);
-        if(changed) this.onAdd(channel);
-        return changed;
-    }
-
-    @Override
-    public boolean remove(Object channel) {
-        boolean changed = channels.remove(channel);
-        if(changed) this.onRemove((Channel) channel);
-        return changed;
-    }
-
-    @Override
-    public boolean containsAll(Collection<?> c) {
-        return channels.containsAll(c);
-    }
-
-    @Override
-    public boolean addAll(Collection<? extends Channel> c) {
-        boolean changed = false;
-        for(Channel channel : c) {
-            changed = changed || add(channel);
-        }
-        return changed;
-    }
-
-    @Override
-    public boolean retainAll(Collection<?> c) {
-        boolean changed = false;
-        Iterator<Channel> iter = this.iterator();
-        while(iter.hasNext()) {
-            Channel channel = iter.next();
-            if(!c.contains(channel)) {
-                iter.remove();
+        if (changed) {
+            group_channels.get(channel.group).add(channel);
+            onAddChannel(channel, name);
+            channel_names.put(channel, name);
+        } else {
+            String previous = channel_names.put(channel, name);
+            if (!previous.equals(name)) {
+                onRenameChannel(channel, previous, name);
                 changed = true;
             }
         }
+        if(changed) this.markDirty();
         return changed;
     }
 
-    @Override
-    public boolean removeAll(Collection<?> c) {
-        boolean changed = false;
-        for(Object channel : c) {
-            changed = changed || remove(channel);
+    public boolean removeChannel(@Nonnull Channel channel) {
+        if(!channel.isValid()) return false;
+        boolean changed = channels.remove(channel);
+        if (changed) {
+            group_channels.get(channel.group).remove(channel);
+            String name = channel_names.remove(channel);
+            onRemoveChannel(channel, name);
+            this.markDirty();
         }
         return changed;
     }
 
-    @Override
-    public void clear() {
-        Iterator<Channel> iter = this.iterator();
-        while(iter.hasNext()) {
-            Channel channel = iter.next();
-            iter.remove();
+    public boolean addGroup(int group, @Nonnull String name) {
+        if(group < 0) return false;
+        if(group == GROUP_PUBLIC) return false;
+        boolean changed = group_names.put(group, name) == null;
+        if (changed) {
+            group_channels.put(group, new HashSet<>());
+            onAddGroup(group, name);
+        } else {
+            String previous = group_names.put(group, name);
+            if (!previous.equals(name)) {
+                onRenameGroup(group, previous, name);
+                changed = true;
+            }
         }
+        if(changed) this.markDirty();
+        return changed;
+    }
+
+    public boolean removeGroup(int group) {
+        if(group < 0) return false;
+        if(group == GROUP_PUBLIC) return false;
+        String name = group_names.remove(group);
+        boolean changed = name != null;
+        if (changed) {
+            List<Channel> toRemove = new ArrayList<>(group_channels.get(group));
+            for (Channel channel : toRemove) {
+                this.removeChannel(channel);
+            }
+            group_channels.remove(group);
+            onRemoveGroup(group, name);
+            this.markDirty();
+        }
+        return changed;
     }
 }

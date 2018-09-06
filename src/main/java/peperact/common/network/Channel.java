@@ -2,70 +2,62 @@ package peperact.common.network;
 
 import net.minecraft.nbt.NBTTagCompound;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Objects;
-import java.util.UUID;
 
-public class Channel {
+public class Channel implements Comparable<Channel> {
 
-    public enum Scope {
-        PUBLIC,
-        SHARED,
-        PERSONAL
-    }
+    public static final int GROUP_PUBLIC = 0;
+    public static final int FREQUENCY_NONE = -1;
+
+    public static Channel INVALID = new Channel(GROUP_PUBLIC, FREQUENCY_NONE);
 
     public static class Serializer {
-        public static final String SCOPE_TAG = "scope";
-        public static final String OWNER_M_TAG = "ownerM";
-        public static final String OWNER_L_TAG = "ownerL";
-        public static final String NAME_TAG = "name";
+        public static final String GROUP_TAG = "group";
+        public static final String FREQUENCY_TAG = "freq";
 
-        public static NBTTagCompound serializeNBT(Channel channel) {
-            NBTTagCompound tag = new NBTTagCompound();
-            tag.setInteger(SCOPE_TAG, channel.scope.ordinal());
-            if (channel.scope != Scope.PUBLIC) {
-                tag.setLong(OWNER_M_TAG, channel.owner.getMostSignificantBits());
-                tag.setLong(OWNER_L_TAG, channel.owner.getLeastSignificantBits());
-            }
-            tag.setString(NAME_TAG, channel.name);
+        public static NBTTagCompound serializeNBT(Channel channel, NBTTagCompound tag) {
+            tag.setInteger(GROUP_TAG, channel.group);
+            tag.setInteger(FREQUENCY_TAG, channel.frequency);
             return tag;
         }
 
         public static Channel deserializeNBT(NBTTagCompound nbt) {
-            Scope scope = Scope.values()[nbt.getInteger(SCOPE_TAG)];
-            UUID owner = null;
-            if (scope != Scope.PUBLIC) {
-                owner = new UUID(nbt.getLong(OWNER_M_TAG), nbt.getLong(OWNER_L_TAG));
-            }
-            String name = nbt.getString(NAME_TAG);
-            return new Channel(scope, owner, name);
+            return Channel.make(nbt.getInteger(GROUP_TAG), nbt.getInteger(FREQUENCY_TAG));
         }
     }
 
-    public final Scope scope;
-    public final UUID owner;
-    public final String name;
+    public static Channel make(int group, int frequency) {
+        Channel chan = new Channel(group, frequency);
+        return chan.isValid() ? chan : INVALID;
+    }
 
-    private Channel(@Nonnull Scope scope, @Nullable UUID owner, @Nonnull String name) {
-        // If the scope is public, then there should be no owner
-        // If the scope isn't public, there there must be an owner
-        assert scope == Scope.PUBLIC ? owner == null : owner != null;
-        this.scope = scope;
-        this.owner = owner;
-        this.name = name;
+    public final int group;
+    public final int frequency;
+
+    private Channel(int group, int frequency) {
+        this.group = group;
+        this.frequency = frequency;
     }
 
     @Override
     public boolean equals(Object o) {
         if(!(o instanceof Channel)) return false;
         Channel oc = (Channel) o;
-        return scope == oc.scope && (scope == Scope.PUBLIC || owner.equals(oc.owner)) && name.equals(oc.name);
+        return group == oc.group && frequency == oc.frequency;
     }
 
     @Override
     public int hashCode() {
-        if (scope == Scope.PUBLIC) return Objects.hash(scope, name);
-        return Objects.hash(scope, owner, name);
+        return Objects.hash(group, frequency);
+    }
+
+    @Override
+    public int compareTo(Channel o) {
+        if (group != o.group) return group - o.group;
+        return frequency - o.frequency;
+    }
+
+    public boolean isValid() {
+        return group >= 0 && frequency >= 0;
     }
 }
